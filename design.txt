@@ -1,0 +1,5 @@
+Trick include/exclude/require list
+Difficulty settings: Glitchless, Easy, Medium, Hard, Very Hard, Insane (and better names for them)
+100% Completable toggle
+Replace Chozo Lore scans with hints
+Skip Frigate toggle
