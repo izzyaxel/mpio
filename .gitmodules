@@ -1,0 +1,3 @@
+[submodule "gcdvd"]
+	path = gcdvd
+	url = https://github.com/izzyaxel/gcdvd
