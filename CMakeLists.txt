@@ -20,7 +20,18 @@ elseif(UNIX)
 	elseif(CMAKE_BUILD_TYPE MATCHES Debug)
 		message(STATUS "Hardening disabled for debug build")
 	endif()
+elseif(APPLE)
+	add_definitions(-DOSX)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Wall -Wextra -Wpedantic -Wformat-security -Wno-unused")
+	if(CMAKE_BUILD_TYPE MATCHES Release)
+		set(ARCH "x86_64")
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_FORTIFY_SOURCE=2 -mmitigate-rop -fstack-protector-strong -fPIE")
+		set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,high-entropy-va")
+	elseif(CMAKE_BUILD_TYPE MATCHES Debug)
+		message(STATUS "Hardening disabled for debug build")
+	endif()
 endif()
+
 if(CMAKE_BUILD_TYPE MATCHES Release)
 	set(CMAKE_CXX_FLAGS_RELEASE "-Ofast")
 	add_definitions(-DRELEASE)
@@ -30,9 +41,10 @@ elseif(CMAKE_BUILD_TYPE MATCHES Debug)
 endif()
 
 add_subdirectory(gcdvd)
+include_directories(gcdvd/include)
+include_directories(include)
 
 project(mpio)
-include_directories(include)
 set(SRC
 		src/util.hh
 		src/datatypes/fourCC.hh
@@ -45,13 +57,12 @@ set(SRC
 		src/in.cc src/in.hh
 		src/out.cc src/out.hh)
 add_library(${PROJECT_NAME} STATIC ${SRC})
-target_include_directories(${PROJECT_NAME} PUBLIC gcdvd/include)
 add_dependencies(${PROJECT_NAME} gcdvd)
 if(WIN32 OR WIN64)
-	set(LIBS
-			${CMAKE_SOURCE_DIR}/libs/libz.a
-			${CMAKE_SOURCE_DIR}/gcdvd/libs/libgcdvd.a)
+	set(LIBS ${CMAKE_SOURCE_DIR}/libs/libz.a ${CMAKE_SOURCE_DIR}/libs/libgcdvd.a)
 elseif(UNIX)
-	set(LIBS z ${CMAKE_SOURCE_DIR}/gcdvd/libs/libgcdvd.so)
+	set(LIBS z ${CMAKE_SOURCE_DIR}/libs/libgcdvd.a)
+elseif(APPLE)
+	set(LIBS z ${CMAKE_SOURCE_DIR}/libs/libgcdvd.a)
 endif()
 target_link_libraries(${PROJECT_NAME} ${LIBS})
